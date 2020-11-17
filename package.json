@@ -8,5 +8,8 @@
   "license": "ISC",
   "dependencies": {
     "nodemailer": "^6.4.16"
+  },
+  "bin": {
+    "mail-report-wrapper": "index.js"
   }
 }
