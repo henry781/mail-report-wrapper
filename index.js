@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 const nodemailer = require('nodemailer');
-const {spawn} = require('child_process');
+const {spawn} = require('child_process')
+const AnsiToHtml = require('ansi-to-html');
+const {readFileSync} = require('fs');
+
+const ansiToHtml = new AnsiToHtml();
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT, 10),
-    secure: false,
+    secure: !!process.env.SMTP_SECURE,
     auth: process.env.SMTP_USER ? {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
@@ -44,13 +48,27 @@ async function execCommand(command, args) {
 
 async function sendReport(code, output) {
 
-    const subject = process.env.MAIL_SUBJECT + ' (exit code ' + code + ')'
+    const subject = process.env.MAIL_SUBJECT + ' (exit code ' + code + ')';
+
+    let template = '{{CONTENT}}';
+
+    if (process.env.MAIL_TEMPLATE_FILE) {
+        try {
+            template = readFileSync(process.env.MAIL_TEMPLATE_FILE).toString('utf8');
+        } catch (e) {
+            console.error('fail to read template file', process.env.MAIL_TEMPLATE_FILE, e);
+        }
+    }
+
+    const html = template
+        .replace('{{SUBJECT}}', subject)
+        .replace('{{CONTENT}}', "<pre>" + ansiToHtml.toHtml(output) + "</pre>");
 
     let info = await transporter.sendMail({
         from: process.env.MAIL_SENDER,
         to: process.env.MAIL_RECEIVERS,
-        subject: subject,
-        html: "<pre>" + output + "</pre>",
+        subject,
+        html,
     });
 
     console.log('Report sent with id', info.messageId);

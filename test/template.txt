@@ -1,0 +1,3 @@
+<p>HELLO TEMPLATE</p>
+<div>{{SUBJECT}}</div>
+<div>{{CONTENT}}</div>
