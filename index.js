@@ -3,7 +3,8 @@
 const nodemailer = require('nodemailer');
 const {spawn} = require('child_process')
 const AnsiToHtml = require('ansi-to-html');
-const {readFileSync} = require('fs');
+const path = require("path");
+const {readFileSync, readdirSync, createReadStream} = require('fs');
 
 const ansiToHtml = new AnsiToHtml();
 
@@ -60,6 +61,21 @@ async function sendReport(code, output) {
         }
     }
 
+    let attachments = [];
+    if (process.env.MAIL_ATTACHMENTS_DIR) {
+        try {
+            const files = readdirSync(process.env.MAIL_ATTACHMENTS_DIR, {withFileTypes: true});
+            attachments = files.filter(f => f.isFile())
+                .map(f => ({
+                    path: path.join(process.env.MAIL_ATTACHMENTS_DIR, f.name),
+                    filename: f.name,
+                    cid: f.name.substr(0, f.name.lastIndexOf('.'))
+                }));
+        } catch (e) {
+            console.error('fail to load attachments', process.env.MAIL_ATTACHMENTS_DIR, e);
+        }
+    }
+
     const html = template
         .replace('{{SUBJECT}}', subject)
         .replace('{{CONTENT}}', "<pre>" + ansiToHtml.toHtml(output) + "</pre>");
@@ -68,6 +84,7 @@ async function sendReport(code, output) {
         from: process.env.MAIL_SENDER,
         to: process.env.MAIL_RECEIVERS,
         subject,
+        attachments,
         html,
     });
 

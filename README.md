@@ -13,6 +13,8 @@ Environment variables:
 * MAIL_SUBJECT
 * MAIL_SENDER
 * MAIL_RECEIVERS
+* MAIL_TEMPLATE_FILE
+* MAIL_ATTACHMENTS_DIR
 
 ```
 mail-report-wrapper command arg1 arg2

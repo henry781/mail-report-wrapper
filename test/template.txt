@@ -1,3 +1,4 @@
 <p>HELLO TEMPLATE</p>
 <div>{{SUBJECT}}</div>
 <div>{{CONTENT}}</div>
+<img src="cid:logo">
